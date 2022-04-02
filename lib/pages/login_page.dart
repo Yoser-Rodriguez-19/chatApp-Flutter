@@ -1,8 +1,11 @@
+import 'package:chat_flutter/helpers/mostrar_alerta.dart';
+import 'package:chat_flutter/services/auth_service.dart';
 import 'package:chat_flutter/widgets/boton_azul.dart';
 import 'package:chat_flutter/widgets/custom_input.dart';
 import 'package:chat_flutter/widgets/labels.dart';
 import 'package:chat_flutter/widgets/logo.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 
 class LoginPage extends StatelessWidget {
@@ -57,6 +60,9 @@ class __FormState extends State<_Form> {
 
   @override
   Widget build(BuildContext context) {
+
+    final authService = Provider.of<AuthService>( context );
+
     return Container(
       margin: const EdgeInsets.only(top: 40),
       padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -76,9 +82,24 @@ class __FormState extends State<_Form> {
             isPassword: true,
           ),
 
-          const BotonAzul(
+          BotonAzul(
             texto: 'ingresar',
-            onPressed: null
+            onPressed: authService.autenticando
+            ? null
+            : () async { 
+
+              FocusScope.of(context).unfocus();
+
+              final loginOk = await authService.login(emailController.text.trim(), passwordController.text.trim());
+              // authService.autenticando = true;
+
+              if ( loginOk ) {
+                //TODO: conectar a nuestro socket server
+                Navigator.pushReplacementNamed(context, 'usuarios');
+              } else {
+                mostrarAlerta(context, 'Login incorrecto', 'Revisa el correo y la contraseña');
+              }
+            }
           ),
 
         ],
