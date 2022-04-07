@@ -122,24 +122,29 @@ class AuthService with ChangeNotifier {
 
     final token = await _storage.read(key: 'token');
 
-    final resp = await http.get(
-      Uri.parse('${Environment.apiURL}/login/renew?token=$token'),
-      headers: {
-        'Content-Type': 'application/json',
-        'x-token': token ?? ''
+    if (token != null) {
+      final resp = await http.get(
+        Uri.parse('${Environment.apiURL}/login/renew?token=$token'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-token': token
+        }
+      );
+      if ( resp.statusCode == 200 ) {
+        final loginResponse = loginResponseFromJson(resp.body);
+        usuario = loginResponse.usuario;
+        await _guardarToken( loginResponse.token );
+        return true;
+
+      } else {
+        logout();
+        return false;
       }
-    );
-
-    if ( resp.statusCode == 200 ) {
-      final loginResponse = loginResponseFromJson(resp.body);
-      usuario = loginResponse.usuario;
-      await _guardarToken( loginResponse.token );
-      return true;
-
     } else {
       logout();
       return false;
     }
+
 
   }
 
